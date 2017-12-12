@@ -1,11 +1,18 @@
 import subprocess
-import re
+
 from BCBio import GFF
-from Bio import SeqIO
 from Bio import Seq
+from Bio import SeqIO
 from Bio import SeqRecord
 
+
 def remove_500bp(contigs, output):
+    """
+    Remove short contigs
+    :param contigs: contigs .fasta file
+    :param output: output folder
+    :return:
+    """
     long_contigs = []
     for i in SeqIO.parse(contigs, "fasta"):
         if len(i.seq) > 500:
@@ -18,6 +25,12 @@ def prodigal_runner(prodigal_exe, outdir):
 
 
 def partial_genes_extract(contigs_path, outdir):
+    """
+    Extract partial genes annotated in .gff file from contigs
+    :param contigs_path: path to contig file in .fasta
+    :param outdir: directory with prodigal_output.gff
+    :return: list of SeqRecord
+    """
     contigs = SeqIO.to_dict(SeqIO.parse(contigs_path, "fasta"))
     partial_genes = []
     with open(outdir+'prodigal_output.gff') as f:

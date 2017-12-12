@@ -1,10 +1,13 @@
 import re
+
+import numpy as np
+import scipy.cluster
+import scipy.sparse
+import scipy.spatial.distance as ssd
+
 from .GFAgraph import GFAgraph
 from .functions import log
-import scipy.sparse
-import scipy.cluster
-import scipy.spatial.distance as ssd
-import numpy as np
+
 
 class Clustering:
     def __init__(self, graph, orfs):
@@ -67,7 +70,7 @@ class Clustering:
 
     def distance(self, orf1, orf2):
         """
-        Distance between 1(absilutely close ORFs) and 2(almost not overlapping) or 0(absolutely not overlapping)
+        Distance between 0(absilutely close ORFs) and 1(almost not overlapping) or 100(absolutely not overlapping)
         :param orf1: ORF's seq
         :param orf2:
         :return: distance >0
@@ -98,6 +101,10 @@ class Clustering:
         return dist/(len(orf1[0]) + len(orf2[0]))
 
     def create_distance_matrix(self):
+        """
+        Create distance matrix for self.orfs
+        :return:
+        """
         self.distances = np.ndarray(shape=(len(self.orfs), len(self.orfs)))
         log('Calculate {0} distances...'.format(int(len(self.orfs) * (len(self.orfs) + 1) / 2)))
         count = 0
@@ -116,12 +123,22 @@ class Clustering:
         self.linkage_matrix = scipy.cluster.hierarchy.linkage(ssd.squareform(self.distances), method='complete')
 
     def make_clusters(self, distance):
+        """
+        Perform clustering with given threshold. self.cluster[i] will be contain number of cluster for self.orfs[i]
+        :param distance: distance threshold [0, 1]
+        :return:
+        """
         for i, o in enumerate(scipy.cluster.hierarchy.fcluster(self.linkage_matrix, distance, 'distance')):
             if self.clusters.get(o) is None:
                 self.clusters[o] = set()
             self.clusters[o].add(i)
 
     def output_clustering(self, output):
+        """
+        Save clustering results in .txt.
+        :param output:
+        :return:
+        """
         with open(output, 'w') as f:
             for i, cluster in enumerate(self.clusters.values()):
                 f.write('Cluster {}\n'.format(i))
